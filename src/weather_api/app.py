@@ -1,9 +1,12 @@
 from fastapi import FastAPI
-from http import HTTPStatus
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 
-from .schemas import ResponseSchema
 from .routers import weather
+
+BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI()
 
@@ -15,9 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(weather.router)
+app.mount("/static", StaticFiles(directory=BASE_DIR /"static"), name="static")
 
-
-@app.get("/", response_model=ResponseSchema, status_code=HTTPStatus.OK)
+@app.get("/")
 async def index():
-    return {"message": "welcome to the weather api v1."}
+    return FileResponse("src/weather_api/static/index.html")
+
+app.include_router(weather.router)
